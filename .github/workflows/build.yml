@@ -1,0 +1,90 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    name: Windows DLLs, tests and packages
+    runs-on: windows-latest
+    permissions:
+      contents: write # publishes the release for version tags
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.5
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck
+
+      - name: Build the DLLs (amd64, wow64, x86, arm64)
+        run: bun run build
+
+      - name: Get Microsoft Keyboard Layout Creator's compiler, to cross-check the .klc files
+        shell: pwsh
+        run: |
+          $exe = Join-Path $env:RUNNER_TEMP 'MSKLC.exe'
+          Invoke-WebRequest 'https://download.microsoft.com/download/6/f/5/6f5ce43a-e892-4fd1-b9a6-1a0cbb64e6e2/MSKLC.exe' -OutFile $exe
+          if ((Get-FileHash $exe -Algorithm SHA256).Hash -ne 'CD12A6B08066133DC4AD71BDCACCF1492E3D9A1DE93CF84B7B2824309F0D7255') { throw 'Unexpected MSKLC.exe' }
+          7z x -y "-o$env:RUNNER_TEMP\msklc" $exe | Out-Null
+          # An administrative install only extracts the files.
+          $files = Join-Path $env:RUNNER_TEMP 'msklc-files'
+          Start-Process msiexec.exe -Wait -ArgumentList '/a', "`"$env:RUNNER_TEMP\msklc\MSKLC\MSKLC.msi`"", '/qn', "TARGETDIR=`"$files`""
+          $kbdutool = Get-ChildItem $files -Recurse -Filter kbdutool.exe | Select-Object -First 1
+          if (-not $kbdutool) { throw 'kbdutool.exe not found in the extracted MSKLC files' }
+          "KBDUTOOL=$($kbdutool.FullName)" >> $env:GITHUB_ENV
+
+      - run: bun test
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $name = "czech-qwerty-international-$version"
+          New-Item -ItemType Directory dist | Out-Null
+          Compress-Archive -Path build/windows/* -DestinationPath "dist/$name-windows.zip"
+          Compress-Archive -Path platforms/macos/* -DestinationPath "dist/$name-macos.zip"
+          Compress-Archive -Path platforms/linux/* -DestinationPath "dist/$name-linux.zip"
+          Copy-Item platforms/windows/*.klc, docs/*.svg dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: czech-qwerty-international
+          path: dist/
+
+      - name: Publish the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          if ("v$version" -ne $env:GITHUB_REF_NAME) { throw "Tag $env:GITHUB_REF_NAME does not match package.json version $version" }
+          gh release create $env:GITHUB_REF_NAME (Get-ChildItem dist).FullName --title "Czech QWERTY International $version" --generate-notes
+
+  linux:
+    name: Layout tests and XKB
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.5
+      - run: bun install --frozen-lockfile
+      - run: bun test
+
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libxkbcommon-tools xkb-data
+      - name: Compile both XKB variants with xkbcommon
+        run: |
+          for variant in basic programmer; do
+            xkbcli compile-keymap --include platforms/linux --include-defaults --layout czqi --variant "$variant" > "$RUNNER_TEMP/$variant.xkb"
+            grep -q 'U010D' "$RUNNER_TEMP/$variant.xkb"
+            echo "czqi($variant) compiles"
+          done
