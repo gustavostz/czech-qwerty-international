@@ -1,0 +1,18 @@
+{
+  "name": "czech-qwerty-international",
+  "version": "0.1.0",
+  "description": "A US QWERTY keyboard layout with intuitive Czech accents, designed for multilingual typing and programming.",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "bun scripts/generate.ts",
+    "build": "bun scripts/generate.ts && bun scripts/build-windows.ts",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/bun": "1.3.5",
+    "typescript": "5.9.3"
+  }
+}

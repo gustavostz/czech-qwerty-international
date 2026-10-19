@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+windows/*.txt text eol=crlf
+# Microsoft Keyboard Layout Creator files are UTF-16 LE.
+*.klc binary
