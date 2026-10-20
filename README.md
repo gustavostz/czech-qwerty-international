@@ -99,7 +99,7 @@ The whole layout is defined once in [`src/layout`](src/layout): [`us-internation
 | `platforms/linux/symbols/czqi` | Linux XKB layout with both variants |
 | `docs/*.svg` | the diagrams above |
 
-To publish a release, set `version` in `package.json`, commit, and push a matching tag (`v0.1.0`); CI builds, tests and attaches the packages.
+To publish a release, bump `version` in `package.json` in your pull request. When it is merged into `main`, CI builds and tests it, then publishes release `v<version>` with the packages attached. Merges that keep the version don't release anything.
 
 ## License
 
