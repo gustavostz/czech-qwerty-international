@@ -5,7 +5,8 @@
 .DESCRIPTION
     Copies the layout DLLs into the Windows system folders and registers both
     layouts (this step asks for administrator rights), then adds the chosen
-    layouts to your keyboard list. Switch keyboards with Win + Space.
+    layouts to your keyboard list. Sign out and back in (or restart), then
+    switch keyboards with Win + Space.
 
     Running it again updates an existing installation.
 
@@ -104,7 +105,9 @@ try {
     if (-not $MachineOnly) {
         Enable-ForUser
         Write-Host ''
-        Write-Host 'Done. Press Win + Space to switch keyboards. Apps that were already open may need a restart.'
+        # Until the next sign-in, Windows has not loaded the new layout's id, and choosing the layout restarts Explorer.
+        Write-Host 'Done. Now sign out of Windows and back in, or restart the PC (locking the screen is not enough).' -ForegroundColor Yellow
+        Write-Host 'Then press Win + Space to switch keyboards.'
     }
 } catch {
     Write-Host ''

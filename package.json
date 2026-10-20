@@ -1,6 +1,6 @@
 {
   "name": "czech-qwerty-international",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A US QWERTY keyboard layout with intuitive Czech accents, designed for multilingual typing and programming.",
   "license": "MIT",
   "private": true,
