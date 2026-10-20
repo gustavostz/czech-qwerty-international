@@ -35,9 +35,12 @@ Download the zip for your system from [Releases](https://github.com/gustavostz/c
 
 1. Unzip `czech-qwerty-international-…-windows.zip`.
 2. Double-click `install.cmd` and accept the administrator prompt.
-3. Press `Win` + `Space` to switch to **Czech QWERTY International**.
+3. Sign out of Windows and back in, or restart the PC. Locking the screen (`Win` + `L`) is not enough.
+4. Press `Win` + `Space` to switch to **Czech QWERTY International**.
 
-The installer copies the layout DLLs to the Windows folder, registers both layouts, and adds the standard one to your keyboards (to English (United States) if you have it). To add the Programmer variant too, run `powershell -ExecutionPolicy Bypass -File install.ps1 -Enable Both`, or add it in **Settings › Time & language › Language & region**. Apps that were already open may need a restart.
+The installer copies the layout DLLs to the Windows folder, registers both layouts, and adds the standard one to your keyboards (to English (United States) if you have it). To add the Programmer variant too, run `powershell -ExecutionPolicy Bypass -File install.ps1 -Enable Both`, or add it in **Settings › Time & language › Language & region**.
+
+Windows only picks up a newly installed layout when you sign in. If you switch to it before that, the screen goes blank while the taskbar reloads and you end up back on your previous keyboard, and the keyboard list may show the new layout as a second "English (United States)". Nothing is broken, and restarting Explorer does not help: sign out and back in, or restart.
 
 To remove it, double-click `uninstall.cmd`.
 

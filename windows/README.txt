@@ -2,7 +2,11 @@
 https://github.com/gustavostz/czech-qwerty-international
 
 Install:   double-click install.cmd and accept the administrator prompt.
-           Then switch keyboards with Win + Space.
+           Then sign out of Windows and back in, or restart the PC
+           (locking the screen is not enough), and switch keyboards
+           with Win + Space. Windows only picks up a new keyboard when
+           you sign in: before that, choosing it reloads the taskbar
+           and puts you back on your previous keyboard.
 Uninstall: double-click uninstall.cmd.
 
 Both layouts are installed; install.cmd adds "Czech QWERTY International"
