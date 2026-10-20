@@ -3,7 +3,6 @@ name: Build
 on:
   push:
     branches: [main]
-    tags: ["v*"]
   pull_request:
   workflow_dispatch:
 
@@ -15,7 +14,7 @@ jobs:
     name: Windows DLLs, tests and packages
     runs-on: windows-latest
     permissions:
-      contents: write # publishes the release for version tags
+      contents: write # publishes a release when main has a new version
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -59,15 +58,16 @@ jobs:
           name: czech-qwerty-international
           path: dist/
 
-      - name: Publish the release
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Publish a release if package.json has a new version
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
-          if ("v$version" -ne $env:GITHUB_REF_NAME) { throw "Tag $env:GITHUB_REF_NAME does not match package.json version $version" }
-          gh release create $env:GITHUB_REF_NAME (Get-ChildItem dist).FullName --title "Czech QWERTY International $version" --generate-notes
+          $released = gh release list --limit 1000 --json tagName --jq '.[].tagName'
+          if ($released -contains "v$version") { "v$version is already released"; exit 0 }
+          gh release create "v$version" (Get-ChildItem dist).FullName --target $env:GITHUB_SHA --title "Czech QWERTY International $version" --generate-notes
 
   linux:
     name: Layout tests and XKB
